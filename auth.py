@@ -5,7 +5,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
-import time
 
 website = 'http://automationpractice.com/'
 PATH = '/Users/tom/Desktop/Chrome_driver_(Python selenium)/chromedriver'  # Path to the chromedriver file
@@ -15,10 +14,10 @@ driver.maximize_window()
 
 class Auto_Script:
     def enter_details (self):
-        # information
+        # Information to fill in
         fn = 'Willlem'
         ln = 'Inhuis'
-        e = 'test123424655432342344@gmail.com'
+        e = 'test1234244@gmail.com'
         pasw = 'test12345'
         add = 'teststraat 1'
         cit = 'Amsterdam'
@@ -29,32 +28,25 @@ class Auto_Script:
         driver.get(website)
 
         # Click on sign-up button to either login or sign-up
-        # driver.implicitly_wait(5)
-
         wait_sign_up = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//a[@class='login']"))
         )
         sign_up = driver.find_element(By.XPATH, "//a[@class='login']")
         sign_up.click()
-        # driver.implicitly_wait(5)
 
-        # Fill in email details
-        # wait_email_create = WebDriverWait(driver, 10).until(
-        #     EC.presence_of_element_located((By.ID, 'email_create'))
-        # )
+        # Fill in email (to check if acc already exist or not)
         email_create = driver.find_element(By.ID, 'email_create')
         email_create.send_keys(e)
         create_button = driver.find_element(By.ID, 'SubmitCreate')
         create_button.click()
 
-        # If load to next page means no account exist with the email adres.
         # Auto fill sign-up page
         try:
-            # driver.implicitly_wait(10)
-            # wait_gender = WebDriverWait(driver, 10).until(
-            #     EC.presence_of_element_located((By.ID, 'id_gender1'))
-            # )
+            wait_gender = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, 'id_gender1'))
+            )
             gender = driver.find_element(By.ID, 'id_gender1')
+            gender.click()
             first_name = driver.find_element(By.ID, 'customer_firstname')
             first_name.send_keys(fn)
             last_name = driver.find_element(By.ID, 'customer_lastname')
@@ -72,6 +64,7 @@ class Auto_Script:
 
             # Adress
             firstname = driver.find_element(By.ID, 'firstname')
+            firstname.clear()
             firstname.send_keys(fn)
             lastname = driver.find_element(By.ID, 'lastname')
             lastname.send_keys(ln)
@@ -92,16 +85,18 @@ class Auto_Script:
             register = driver.find_element(By.ID, 'submitAccount')
             register.click()
 
-        # If error is raised that account already exist.
-        # Use login information to login.
+            # If error is raised that account already exist.
+            # Use login information to login.
         except NoSuchElementException:
             account_exists = driver.find_element(By.XPATH, "//div[@class='alert alert-danger']")
+
             login_email = driver.find_element(By.ID, 'email')
             login_email.send_keys(e)
             login_passwd = driver.find_element(By.ID, 'passwd')
             login_passwd.send_keys(pasw)
             submitlogin = driver.find_element(By.ID, 'SubmitLogin')
             submitlogin.click()
+            driver.implicitly_wait(60)
 
 
     def products(self):
@@ -137,23 +132,11 @@ class Auto_Script:
                     click_to_product.click()
 
                     # Get information
-                    # print(index)
                     name.append(driver.find_element(By.TAG_NAME, 'h1').text)
-                    # pr  Faded Short Sleeve T-shirts  ...  $16.51
-                    # 1                       Blouse  ...  $27.00
-                    # 2                Printed Dress  ...  $26.00
-                    # 3                Printed Dress  ...  $50.99
-                    # 4         Printed Summer Dress  ...  $28.98
-                    # 5         Printed Summer Dress  ...  $30.50
-                    # 6int(name)
                     reference.append(driver.find_element(By.XPATH, "//span[@itemprop='sku']").text)
-                    # print(reference)
                     condition.append(driver.find_element(By.ID, "product_condition").text)
-                    # print(condition)
                     description.append(driver.find_element(By.XPATH, "//div[@itemprop='description']").text)
-                    # print(description)
                     price.append(driver.find_element(By.ID, 'our_price_display').text)
-                    # print(price)
                     driver.back()
                     index += 1
                     continue
@@ -163,6 +146,7 @@ class Auto_Script:
 
         driver.quit()
 
+        # Write the data to csv file
         df = pd.DataFrame(
             {'Name': name, 'Reference': reference, 'Condition': condition, 'Description': description, 'Price': price})
         df.to_csv('test.csv', index=False)
